@@ -90,3 +90,44 @@ button:hover {
 .login-footer a:hover {
     text-decoration: underline;
 }
+
+/* Estilos para la página de inicio (home.html) */
+.main-container {
+    max-width: 800px;
+    width: 100%;
+    padding: 2rem;
+    background-color: #fff;
+    border: 0.0625rem solid #ccc;
+    margin: 2rem;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+}
+
+.logout-link {
+    color: #dc3545;
+    /* Rojo para salir */
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
