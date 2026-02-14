@@ -10,7 +10,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     font-size: 16px;
 }
 
@@ -18,6 +18,7 @@ body {
     width: 100%;
     display: flex;
     justify-content: center;
+    padding: 1rem;
 }
 
 .login-card {
@@ -65,6 +66,7 @@ button {
     padding: 0.6rem;
     font-size: 1rem;
     background-color: #007bff;
+    /* Azul estándar */
     color: white;
     border: none;
     border-radius: 0.25rem;
@@ -105,15 +107,61 @@ header {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 0.0625rem solid #eee;
     padding-bottom: 1rem;
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+nav a {
+    text-decoration: none;
+    color: #666;
+    margin-left: 1.5rem;
+    font-size: 0.95rem;
+}
+
+nav a:hover,
+nav a.active {
+    color: #007bff;
 }
 
 .logout-link {
     color: #dc3545;
-    /* Rojo para salir */
-    text-decoration: none;
-    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+footer {
+    margin-top: 3rem;
+    border-top: 0.0625rem solid #eee;
+    padding-top: 1.5rem;
+    text-align: center;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+h2 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: normal;
+}
+
+.content-section {
+    margin-top: 1.5rem;
+}
+
+.contact-form textarea {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 0.0625rem solid #aaa;
+    border-radius: 0.25rem;
+    font-family: inherit;
+    resize: vertical;
 }
 
 .gallery {
