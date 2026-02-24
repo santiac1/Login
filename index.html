@@ -24,6 +24,22 @@
                 </div>
                 <button type="submit" class="login-btn">Iniciar Sesión</button>
             </form>
+            <script>
+                document.querySelector('form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+
+                    const users = JSON.parse(localStorage.getItem('users')) || [];
+                    const user = users.find(u => (u.email === username || u.name === username) && u.password === password);
+
+                    if (user || (username === 'admin' && password === 'admin')) {
+                        window.location.href = 'home.html';
+                    } else {
+                        alert('Usuario o contraseña incorrectos.');
+                    }
+                });
+            </script>
             <div class="login-footer">
                 <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
                 <br>
