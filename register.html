@@ -9,6 +9,11 @@
 </head>
 
 <body>
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            window.location.href = 'home.html';
+        }
+    </script>
     <div class="login-container">
         <div class="login-card">
             <h1>Registro</h1>

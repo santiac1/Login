@@ -9,6 +9,12 @@
 </head>
 
 <body>
+    <script>
+        // Si ya está logueado, redirigir directamente al home
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            window.location.href = 'home.html';
+        }
+    </script>
     <div class="login-container">
         <div class="login-card">
             <h1>Bienvenido</h1>
@@ -34,6 +40,9 @@
                     const user = users.find(u => (u.email === username || u.name === username) && u.password === password);
 
                     if (user || (username === 'admin' && password === 'admin')) {
+                        // Guardar la sesión correctamentamente
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('currentUser', user ? user.name : 'admin');
                         window.location.href = 'home.html';
                     } else {
                         alert('Usuario o contraseña incorrectos.');
