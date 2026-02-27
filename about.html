@@ -22,6 +22,22 @@
                 <h2>Desarrollador</h2>
                 <p>Santiago.</p>
             </div>
+
+            <div class="content-section" id="pokemon-section">
+                <h2>Pokémon Destacado</h2>
+                <p id="pokemon-name">Cargando...</p>
+                <img id="pokemon-image" src="" alt="Pokémon" style="display: none; width: 100px; height: 100px;">
+            </div>
+            <script>
+                fetch('https://pokeapi.co/api/v2/pokemon/25')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('pokemon-name').textContent = data.name.charAt(0).toUpperCase() + data.name.slice(1);
+                        document.getElementById('pokemon-image').src = data.sprites.front_default;
+                        document.getElementById('pokemon-image').style.display = 'block';
+                    })
+                    .catch(error => console.error('Error fetching Pokémon:', error));
+            </script>
         </main>
 
         <footer></footer>
