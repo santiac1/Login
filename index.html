@@ -4,56 +4,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>Batalla Pokémon</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <script>
-        // Si ya está logueado, redirigir directamente al home
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
-            window.location.href = 'home.html';
-        }
-    </script>
-    <div class="login-container">
-        <div class="login-card">
-            <h1>Bienvenido</h1>
-            <p>Ingresa tus credenciales para continuar</p>
-            <form action="home.html">
-                <div class="input-group">
-                    <label for="username">Usuario o Correo</label>
-                    <input type="text" id="username" name="username" placeholder="ejemplo@correo.com" required>
-                </div>
-                <div class="input-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" name="password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="login-btn">Iniciar Sesión</button>
-            </form>
-            <script>
-                document.querySelector('form').addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const username = document.getElementById('username').value;
-                    const password = document.getElementById('password').value;
+    <div class="main-container">
 
-                    const users = JSON.parse(localStorage.getItem('users')) || [];
-                    const user = users.find(u => (u.email === username || u.name === username) && u.password === password);
+        <main>
+            <h1>Batalla Pokémon</h1>
+            <p>Elige dos Pokémon para comenzar el combate.</p>
 
-                    if (user || (username === 'admin' && password === 'admin')) {
-                        // Guardar la sesión correctamentamente
-                        sessionStorage.setItem('isLoggedIn', 'true');
-                        sessionStorage.setItem('currentUser', user ? user.name : 'admin');
-                        window.location.href = 'home.html';
-                    } else {
-                        alert('Usuario o contraseña incorrectos.');
-                    }
-                });
-            </script>
-            <div class="login-footer">
-                <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
-                <br>
+            <div class="filters">
+                <input type="text" id="search-name" placeholder="Buscar por nombre...">
+                <input type="number" id="search-id" placeholder="Buscar por ID...">
+                <select id="search-type">
+                    <option value="">Todos los tipos</option>
+                    <option value="normal">Normal</option>
+                    <option value="fire">Fuego</option>
+                    <option value="water">Agua</option>
+                    <option value="grass">Planta</option>
+                    <option value="electric">Eléctrico</option>
+                    <option value="ice">Hielo</option>
+                    <option value="fighting">Lucha</option>
+                    <option value="poison">Veneno</option>
+                    <option value="ground">Tierra</option>
+                    <option value="flying">Volador</option>
+                    <option value="psychic">Psíquico</option>
+                    <option value="bug">Bicho</option>
+                    <option value="rock">Roca</option>
+                    <option value="ghost">Fantasma</option>
+                    <option value="dragon">Dragón</option>
+                    <option value="dark">Siniestro</option>
+                    <option value="steel">Acero</option>
+                    <option value="fairy">Hada</option>
+                </select>
             </div>
-        </div>
+
+            <div id="selection-status" style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #d32f2f;">Selecciona tu primer Pokémon luchador</h2>
+            </div>
+
+            <div class="gallery" id="pokemon-container">
+            </div>
+
+            <div id="battle-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close-btn" id="close-battle">&times;</span>
+
+                    <div id="winner-screen" style="display: none; text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: gold; text-transform: uppercase;">¡Ganador!</h1>
+                        <img id="winner-img" src="" alt="Winner" style="width: 150px; height: 150px;">
+                        <h2 id="winner-name" style="text-transform: capitalize;"></h2>
+                    </div>
+
+                    <div id="battle-area">
+                        <div class="fighters-container">
+                            <div class="fighter" id="fighter-1">
+                                <h3 id="f1-name" style="text-transform: capitalize;">P1</h3>
+                                <img id="f1-img" src="" alt="">
+                                <div class="health-bar-bg">
+                                    <div class="health-bar-fill" id="f1-health"></div>
+                                </div>
+                                <p id="f1-hp-text">100%</p>
+                            </div>
+
+                            <h2 style="align-self: center; margin: 0 20px;">VS</h2>
+
+                            <div class="fighter" id="fighter-2">
+                                <h3 id="f2-name" style="text-transform: capitalize;">P2</h3>
+                                <img id="f2-img" src="" alt="">
+                                <div class="health-bar-bg">
+                                    <div class="health-bar-fill" id="f2-health"></div>
+                                </div>
+                                <p id="f2-hp-text">100%</p>
+                            </div>
+                        </div>
+
+                        <div id="battle-log" class="battle-log">
+                            Esperando para comenzar la batalla...
+                        </div>
+
+                        <div style="text-align: center; margin-top: 15px;">
+                            <button id="start-battle-btn" class="battle-btn">¡Comenzar Batalla!</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // === 1. VARIABLES GLOBALES Y ELEMENTOS DEL DOM ===
+                let selectedPokemons = [];
+                let battleInterval;
+
+                let f1State = { hp: 100, turns: 0 };
+                let f2State = { hp: 100, turns: 0 };
+
+                const statusText = document.querySelector('#selection-status h2');
+                const battleModal = document.getElementById('battle-modal');
+                const closeBattleBtn = document.getElementById('close-battle');
+                const startBattleBtn = document.getElementById('start-battle-btn');
+                const battleLog = document.getElementById('battle-log');
+                const winnerScreen = document.getElementById('winner-screen');
+                const battleArea = document.getElementById('battle-area');
+
+                let allPokemons = [];
+                const container = document.getElementById('pokemon-container');
+
+                // === 2. CONEXIÓN A LA POKEAPI Y BÚSQUEDA ===
+                async function fetchPokemons() {
+                    if (allPokemons.length === 0) {
+                        container.innerHTML = '<p>Iniciando carga de Pokémon...</p>';
+                    }
+
+                    try {
+                        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151');
+                        const data = await response.json();
+                        const basicList = data.results;
+
+                        container.innerHTML = '';
+
+                        const batchSize = 40;
+
+                        for (let i = 0; i < basicList.length; i += batchSize) {
+                            const batch = basicList.slice(i, i + batchSize);
+
+                            const promises = batch.map(async (pokemonBasic) => {
+                                try {
+                                    const res = await fetch(pokemonBasic.url);
+                                    return await res.json();
+                                } catch (e) {
+                                    return null;
+                                }
+                            });
+
+                            const newPokemonsData = await Promise.all(promises);
+                            const validPokemons = newPokemonsData.filter(p => p !== null);
+
+                            allPokemons = allPokemons.concat(validPokemons);
+
+                            filterPokemons();
+                        }
+
+                    } catch (error) {
+                        console.error('Error cargando pokémones iniciales:', error);
+                        if (allPokemons.length === 0) {
+                            container.innerHTML = '<p>Error de conexión inicial.</p>';
+                        }
+                    }
+                }
+
+                function displayPokemons(pokemonsArray) {
+                    container.innerHTML = '';
+
+                    if (pokemonsArray.length === 0) {
+                        container.innerHTML = '<p>No se encontraron Pokémon.</p>';
+                        return;
+                    }
+
+                    pokemonsArray.forEach(pokemon => {
+                        const types = pokemon.types.map(t => t.type.name).join(', ');
+
+                        const card = document.createElement('div');
+                        card.className = 'gallery-item pokemon-card';
+
+                        card.innerHTML = `
+                            <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+                            <h3>${pokemon.name}</h3>
+                            <p><strong>ID:</strong> ${pokemon.id}</p>
+                            <p><strong>Tipo:</strong> ${types}</p>
+                        `;
+
+                        card.addEventListener('click', () => selectPokemon(pokemon, card));
+
+                        container.appendChild(card);
+                    });
+                }
+
+                function filterPokemons() {
+                    const nameVal = document.getElementById('search-name').value.toLowerCase();
+                    const idVal = document.getElementById('search-id').value;
+                    const typeVal = document.getElementById('search-type').value;
+
+                    const filtered = allPokemons.filter(p => {
+                        const matchName = p.name.includes(nameVal);
+                        const matchId = idVal === '' || p.id.toString() === idVal;
+                        const matchType = typeVal === '' || p.types.some(t => t.type.name === typeVal);
+                        return matchName && matchId && matchType;
+                    });
+
+                    displayPokemons(filtered);
+                }
+
+                document.getElementById('search-name').addEventListener('input', filterPokemons);
+                document.getElementById('search-id').addEventListener('input', filterPokemons);
+                document.getElementById('search-type').addEventListener('change', filterPokemons);
+
+                fetchPokemons();
+
+                // === 3. SELECCIÓN DE POKÉMON Y PREPARACIÓN DE ARENA ===
+                function selectPokemon(pokemonData, cardElement) {
+                    if (selectedPokemons.length >= 2) return;
+                    if (selectedPokemons.includes(pokemonData)) return;
+
+                    cardElement.classList.add('selected');
+                    selectedPokemons.push(pokemonData);
+
+                    if (selectedPokemons.length === 1) {
+                        statusText.innerText = `Luchador 1: ${pokemonData.name.toUpperCase()}. ¡Selecciona el segundo luchador!`;
+                        statusText.style.color = '#1976d2';
+                    } else if (selectedPokemons.length === 2) {
+                        statusText.innerText = `¡${selectedPokemons[0].name.toUpperCase()} VS ${selectedPokemons[1].name.toUpperCase()}! Entrando a la arena...`;
+                        statusText.style.color = '#388e3c';
+
+                        setTimeout(() => openBattleArena(), 1500);
+                    }
+                }
+
+                function openBattleArena() {
+                    battleModal.style.display = 'flex';
+                    resetArena();
+                    setupFighter(selectedPokemons[0], 1, f1State);
+                    setupFighter(selectedPokemons[1], 2, f2State);
+                }
+
+                function resetArena() {
+                    winnerScreen.style.display = 'none';
+                    battleArea.style.display = 'block';
+                    startBattleBtn.style.display = 'inline-block';
+                    battleLog.innerHTML = `<p>¡Los competidores están listos en la arena!</p>`;
+                    f1State = { hp: 100, turns: 0 };
+                    f2State = { hp: 100, turns: 0 };
+                }
+
+                function setupFighter(pokeData, num, stateData) {
+                    document.getElementById(`f${num}-name`).innerText = pokeData.name;
+                    document.getElementById(`f${num}-img`).src = pokeData.sprites.front_default;
+                    updateHealthUI(num, 100);
+                }
+
+                function updateHealthUI(fighterNum, hpPercentage) {
+                    const bar = document.getElementById(`f${fighterNum}-health`);
+                    const text = document.getElementById(`f${fighterNum}-hp-text`);
+
+                    bar.style.width = `${hpPercentage}%`;
+                    text.innerText = `${Math.round(hpPercentage)}%`;
+
+                    if (hpPercentage > 50) {
+                        bar.style.backgroundColor = '#4caf50';
+                    } else if (hpPercentage > 20) {
+                        bar.style.backgroundColor = '#ffeb3b';
+                    } else {
+                        bar.style.backgroundColor = '#f44336';
+                    }
+                }
+
+                closeBattleBtn.addEventListener('click', () => {
+                    battleModal.style.display = 'none';
+                    clearInterval(battleInterval);
+                    selectedPokemons = [];
+                    statusText.innerText = 'Selecciona tu primer Pokémon luchador';
+                    statusText.style.color = '#d32f2f';
+                    document.querySelectorAll('.pokemon-card.selected').forEach(c => c.classList.remove('selected'));
+                });
+
+                // === 4. MOTOR PRINCIPAL DE BATALLA para los TURNOS Y ACCIONES ===
+                startBattleBtn.addEventListener('click', () => {
+                    startBattleBtn.style.display = 'none';
+                    battleLog.innerHTML = `<p>¡Comienza la batalla entre ${selectedPokemons[0].name.toUpperCase()} y ${selectedPokemons[1].name.toUpperCase()}!</p>`;
+
+                    let currentTurn = 1;
+
+                    battleInterval = setInterval(() => {
+                        const attackerIdx = currentTurn === 1 ? 0 : 1;
+                        const defenderIdx = currentTurn === 1 ? 1 : 0;
+                        const attacker = selectedPokemons[attackerIdx];
+                        const defenderData = selectedPokemons[defenderIdx];
+
+                        const atkState = currentTurn === 1 ? f1State : f2State;
+                        const defState = currentTurn === 1 ? f2State : f1State;
+                        const defNum = currentTurn === 1 ? 2 : 1;
+
+                        atkState.turns++;
+
+                        let moveType = 'Ataque Normal';
+                        let damage = 10 + Math.floor(Math.random() * 10);
+
+                        const missed = Math.random() < 0.15;
+
+                        const defenderUsedSpDef = defState.turns >= 2 && Math.random() < 0.5;
+
+                        if (!missed && atkState.turns >= 3 && Math.random() < 0.6) {
+                            moveType = 'ATAQUE ESPECIAL';
+                            damage = 25 + Math.floor(Math.random() * 15);
+                            atkState.turns = 0;
+                        }
+
+                        let logMsg = `<strong>Turno de ${attacker.name.toUpperCase()}:</strong> `;
+
+                        if (missed) {
+                            logMsg += `¡El ataque falló! `;
+                        } else {
+                            if (defenderUsedSpDef) {
+                                logMsg += `¡${defenderData.name.toUpperCase()} intentó usar DEFENSA ESPECIAL! `;
+
+                                if (Math.random() < 0.3) {
+                                    logMsg += `Pero la defensa falló... `;
+                                } else {
+                                    logMsg += `¡Y la defensa fue exitosa! `;
+                                    damage = Math.floor(damage / 2);
+                                    defState.turns -= 2;
+                                }
+                            }
+
+                            defState.hp -= damage;
+                            if (defState.hp < 0) defState.hp = 0;
+
+                            logMsg += `Usó ${moveType} y causó ${damage}% de daño. A ${defenderData.name.toUpperCase()} le queda ${defState.hp}% de vida.`;
+                            updateHealthUI(defNum, defState.hp);
+                        }
+
+                        const p = document.createElement('p');
+                        p.innerHTML = logMsg;
+                        battleLog.appendChild(p);
+                        battleLog.scrollTop = battleLog.scrollHeight;
+
+                        if (defState.hp <= 0) {
+                            clearInterval(battleInterval);
+                            announceWinner(attacker);
+                        } else {
+                            currentTurn = currentTurn === 1 ? 2 : 1;
+                        }
+
+                    }, 2500);
+                });
+
+                // === 5. PANTALLA DE VICTORIA ===
+                function announceWinner(winnerData) {
+                    setTimeout(() => {
+                        battleArea.style.display = 'none';
+                        winnerScreen.style.display = 'block';
+
+                        document.getElementById('winner-img').src = winnerData.sprites.front_default;
+                        document.getElementById('winner-name').innerText = winnerData.name;
+                    }, 1500);
+                }
+            </script>
+        </main>
     </div>
 </body>
 
